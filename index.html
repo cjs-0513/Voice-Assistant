@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교 음성 비서 (Voice Assistant)</title>
+    <!-- Talwind CSS CDN을 로드하여 깔끔하고 반응형 디자인 적용 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 마이크 버튼의 활성화 시 붉은색 파동(Pulse) 애니메이션을 위한 사용자 정의 스타일 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+i
+        .listening {
+            /* '듣는 중' 상태일 때 붉은색 파동 애니메이션 적용 */
+            animation: pulse 1.5s infinite;
+        }
+
+        .mic-icon {
+            /* 마이크 SVG 아이콘을 버튼 중앙에 배치하기 위한 Flexbox 스타일 */
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 font-sans">
+
+    <div class="w-full max-w-xl bg-white shadow-2xl rounded-3xl p-6 md:p-10">
+        <!-- 헤더 영역 -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-700 mb-2">🏫 Voice Assistant</h1>
+            <p class="text-gray-600 text-lg">음성으로 시설을 찾고, 익명으로 민원을 접수하세요.</p>
+        </header>
+
+        <!-- 메인 어시스턴트 영역 -->
+        <main class="flex flex-col items-center space-y-8">
+            
+            <!-- 상태 표시 (대기, 듣는 중) -->
+            <div id="status-display" class="text-xl font-semibold text-gray-800 h-8 flex items-center justify-center">
+                말씀해주세요...
+            </div>
+
+            <!-- 마이크 버튼 (음성 인식 시작/종료 트리거) -->
+            <button id="mic-button" class="w-28 h-28 bg-blue-600 hover:bg-blue-700 transition-all duration-300 rounded-full text-white focus:outline-none focus:ring-4 focus:ring-blue-300 transform scale-100 active:scale-95 shadow-xl">
+                <div class="mic-icon">
+                    <!-- 마이크 아이콘 (SVG) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- 사용자 입력 표시 (시스템이 인식한 텍스트를 시뮬레이션) -->
+            <div id="user-input-display" class="w-full min-h-[50px] bg-gray-50 p-3 rounded-lg text-sm text-gray-500 italic border border-gray-200">
+                <!-- 사용자의 음성 입력 내용이 여기에 표시됩니다. -->
+            </div>
+
+            <!-- 어시스턴트 응답 영역 -->
+            <div id="assistant-response" class="w-full p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-lg text-gray-700 text-base shadow-inner min-h-[80px]">
+                환영합니다! 어떤 도움이 필요하신가요? 마이크를 눌러 말씀해보세요.
+            </div>
+
+            <!-- 기능 바로가기 버튼 -->
+            <div class="flex flex-col sm:flex-row w-full justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
+                <button id="facility-shortcut" class="flex-1 py-3 px-6 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition duration-150">
+                    🏫 시설 찾기
+                </button>
+                <button id="complaint-shortcut" class="flex-1 py-3 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition duration-150">
+                    🤫 익명 민원 접수
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript (모의 음성 비서 로직) -->
+    <script>
+        const micButton = document.getElementById('mic-button');
+        const statusDisplay = document.getElementById('status-display');
+        const userInputDisplay = document.getElementById('user-input-display');
+        const assistantResponse = document.getElementById('assistant-response');
+        const facilityShortcut = document.getElementById('facility-shortcut');
+        const complaintShortcut = document.getElementById('complaint-shortcut');
+
+        let isListening = false;
+
+        // 음성 인식 과정을 시뮬레이션하는 함수
+        function startListening() {
+            if (isListening) return;
+
+            isListening = true;
+            // '듣는 중' 상태일 때 스타일 변경 (붉은색 & 펄스 애니메이션)
+            micButton.classList.add('bg-red-500', 'listening'); 
+            micButton.classList.remove('bg-blue-600');
+            statusDisplay.textContent = '듣는 중... 말씀해보세요.';
+            userInputDisplay.textContent = '...';
+            assistantResponse.innerHTML = '<span class="animate-pulse">시스템이 음성을 분석하고 있습니다...</span>';
+
+            // 음성 입력 및 처리 지연 시간 시뮬레이션 (3초)
+            setTimeout(processCommand, 3000);
+        }
+
+        // 시뮬레이션된 명령어를 처리하는 함수
+        function processCommand(source = 'voice') {
+            stopListening();
+
+            let simulatedInput;
+            if (source === 'facility') {
+                simulatedInput = '도서관 위치를 알려줘'; // 시설 찾기 시뮬레이션 입력
+            } else if (source === 'complaint') {
+                simulatedInput = '301호 에어컨이 고장 났어요'; // 민원 접수 시뮬레이션 입력
+            } else {
+                // 마이크 버튼 클릭 시 무작위 음성 입력 시뮬레이션
+                const commands = ['체육관 운영 시간을 알려줘', '301호 에어컨이 고장 났어요', '학생 식당 메뉴는 뭐야', '익명 민원 접수하고 싶어'];
+                simulatedInput = commands[Math.floor(Math.random() * commands.length)];
+            }
+            
+            userInputDisplay.textContent = `사용자 입력 (Mock): "${simulatedInput}"`;
+
+            let responseText = '';
+
+            // 의도 분석 로직 (모의)
+            if (simulatedInput.includes('시설') || simulatedInput.includes('위치') || simulatedInput.includes('시간') || simulatedInput.includes('도서관') || simulatedInput.includes('체육관')) {
+                // 1. 시설 찾기 기능 응답
+                responseText = '🏫 **[시설 찾기]** 명령을 인식했습니다. 요청하신 시설 정보를 검색하고 있습니다.<br><br>예시 답변: **도서관**은 본관 2층에 위치하며, 운영 시간은 오전 9시부터 오후 8시까지입니다. 상세 정보가 화면에 표시됩니다.';
+            } else if (simulatedInput.includes('민원') || simulatedInput.includes('고장') || simulatedInput.includes('불편') || simulatedInput.includes('접수')) {
+                // 2. 익명 민원 접수 기능 응답
+                responseText = '🤫 **[익명 민원 접수]** 명령을 인식했습니다. 말씀하신 민원 내용("301호 에어컨이 고장 났어요")이 익명으로 안전하게 접수되었습니다. 처리 후 담당 부서에서 연락드릴 예정입니다.';
+            } else {
+                // 기타 응답
+                responseText = '죄송합니다. 요청을 이해하지 못했습니다. "시설 찾기" 또는 "민원 접수"라고 다시 말씀해 주시거나 아래 버튼을 눌러주세요.';
+            }
+
+            assistantResponse.innerHTML = responseText;
+        }
+
+        // 마이크 상태를 초기화하고 대기 상태로 되돌리는 함수
+        function stopListening() {
+            isListening = false;
+            micButton.classList.remove('bg-red-500', 'listening');
+            micButton.classList.add('bg-blue-600');
+            statusDisplay.textContent = '말씀해주세요...';
+        }
+
+        // 이벤트 리스너 설정
+        micButton.addEventListener('click', startListening);
+
+        facilityShortcut.addEventListener('click', () => {
+            assistantResponse.innerHTML = '<span class="text-green-600 font-bold">시설 찾기 바로가기 실행:</span> 어떤 시설을 찾으세요? 마이크를 누르고 말씀해 주세요.';
+            userInputDisplay.textContent = '';
+            // 바로가기 버튼 클릭 시 시설 찾기 시뮬레이션 실행
+            setTimeout(() => processCommand('facility'), 1000);
+        });
+
+        complaintShortcut.addEventListener('click', () => {
+            assistantResponse.innerHTML = '<span class="text-orange-600 font-bold">민원 접수 바로가기 실행:</span> 내용을 말씀해 주시면 익명으로 접수됩니다.';
+            userInputDisplay.textContent = '';
+            // 바로가기 버튼 클릭 시 민원 접수 시뮬레이션 실행
+            setTimeout(() => processCommand('complaint'), 1000);
+        });
+
+        // 초기 상태 설정
+        stopListening();
+
+    </script>
+</body>
+</html>
